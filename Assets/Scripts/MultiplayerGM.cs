@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.Networking;
 using RL_Helpers;
@@ -16,6 +17,7 @@ namespace Multiplayer {
         public void Awake() {
             if(sMP==null) {
                 sMP = this;
+				UserNameInput.text = System.Environment.UserName;
             }
         }
 
@@ -42,6 +44,36 @@ namespace Multiplayer {
             DB.MsgFormat("OnServerRemovePlayer({0},{1})", vConn, vPlayer);
         }
         #endregion
+
+
+		#region UI
+		public	Text		ScoreField;		//Link in IDE
+		public	static 	int	Score {		//Set Score
+			set {
+				sMP.ScoreField.text = value.ToString ();
+			}
+		}
+
+		PlayerShip	mLocalPlayer;		//When Local player starts, register them here
+		public	static	PlayerShip	LocalPlayerShip {
+			get {
+				return sMP.mLocalPlayer;
+			}
+			set {
+				sMP.mLocalPlayer = value;
+				sMP.NewName ();		//Also send name from input box
+			}
+		}
+
+
+		public	InputField	UserNameInput;	//Link input field in inspector
+		public void	NewName() {
+			if (LocalPlayerShip != null) {		//Set name on local player, if spawned
+				LocalPlayerShip.CmdSetUserName (sMP.UserNameInput.text);
+			}
+		}
+
+		#endregion
 
     }
 }

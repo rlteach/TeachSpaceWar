@@ -4,7 +4,17 @@ using UnityEngine.Networking;
 
 namespace Multiplayer {
 
-    public class Bullet : NetworkBehaviour {
+
+	public class Bullet : Entity {
+
+		public	override	EntityType EType {
+			get {
+				return	EntityType.Bullet;
+			}
+		}
+
+		public	NetworkInstanceId mPlayerID;
+
         public override void OnStartClient() {
             base.OnStartClient();
 	    }
