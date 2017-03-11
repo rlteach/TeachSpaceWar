@@ -10,9 +10,11 @@ public class PlayerShip : NetworkBehaviour {
     [Header("User settings")]           //These will show up in inspector
     [Range(180f, 720f)]
     public float RotationSpeed = 180f;
-    [Range(0, 50f)]
-    public 	float Speed = 20.0f;
-	[Range(0, 3f)]
+    [Range(0, 5f)]
+    public 	float Speed = 1.0f;
+    [Range(0, 10f)]
+    public float MaxSpeed = 10f;
+    [Range(0, 3f)]
 	public 	float BulletSpeed = 1.0f;
 	[Range(0, 3f)]
 	public 	float BulletTimeToLive = 1.0f;
@@ -75,7 +77,6 @@ public class PlayerShip : NetworkBehaviour {
 	Vector3	mStartPosition;
 
 	public	override void OnStartClient() {
-		mRB = GetComponent<Rigidbody2D>(); //Get RB component from GameObject
 		mSR=GetComponent<SpriteRenderer>();	//Cache key components for fast reuse
 		mCOL = GetComponent<Collider2D> ();
 		mStartPosition=transform.position;
@@ -107,25 +108,24 @@ public class PlayerShip : NetworkBehaviour {
 
 	public	void	Warp() {
 		Vector2	vPosition = new Vector2 (Random.Range (-GM.WorldSize.x, GM.WorldSize.x), Random.Range (-GM.WorldSize.y, GM.WorldSize.y));
-		mRB.velocity = Vector2.zero;
 		transform.position=vPosition;
 		transform.rotation = Quaternion.identity;
 	}
 
 	public	void	ReSpawn() {
 		mSR.color = Color.white;		//Turn ship white again
-		mRB.velocity = Vector2.zero;
 		transform.position=mStartPosition;
 		transform.rotation = Quaternion.identity;
 		Show (true);
 	}
-	#endregion
+    #endregion
 
 
-    #region PhysicsMove
-    Rigidbody2D mRB;  //Keep a reference to the RB
-    //For Physics we use Fixed Update	
-    void FixedUpdate() {
+    #region PlayerMove
+
+    Vector2 mVelocity = Vector2.zero;
+
+    void Update() {
 		if (isLocalPlayer) {
 			MoveLocalPlayer ();
 		}
@@ -134,16 +134,15 @@ public class PlayerShip : NetworkBehaviour {
 	void	MoveLocalPlayer() {
 		if (mActive) {
 			if (Input.GetKey (KeyCode.LeftArrow)) {      //Rotate ship, could use torque, but this looks better
-				mRB.MoveRotation (mRB.rotation + (RotationSpeed * Time.deltaTime));
+                transform.localRotation *= Quaternion.Euler(0f, 0f, RotationSpeed * Time.deltaTime);
 			}
 			if (Input.GetKey (KeyCode.RightArrow)) {
-				mRB.MoveRotation (mRB.rotation - (RotationSpeed * Time.deltaTime));
+                transform.localRotation *= Quaternion.Euler(0f, 0f, -RotationSpeed * Time.deltaTime);
 			}
 			if (Input.GetKey (KeyCode.UpArrow)) {    //Apply force in direction of rotation
-				Vector2 tForce = Quaternion.Euler (0, 0, mRB.rotation) * Vector2.up * Time.deltaTime * Speed;
-				mRB.AddForce (tForce);
-			}
-			/*
+                mVelocity += (Vector2)(transform.localRotation * Vector2.up* Speed);
+            }
+            /*
 if (CoolDown () && Input.GetKey (KeyCode.Space)) {
 				GM.CreateBullet (BulletSpawn.transform.position, (BulletSpawn.transform.position - transform.position).normalized * BulletSpeed,BulletTimeToLive);
 			}
@@ -153,14 +152,20 @@ if (CoolDown () && Input.GetKey (KeyCode.Space)) {
 				}
 			}
 			*/
+            if (mVelocity.magnitude > MaxSpeed) {
+                mVelocity = mVelocity.normalized * MaxSpeed;       //Clamp speed
+            }
+            transform.position += (Vector3)mVelocity*Time.deltaTime;       //Add velocity step
 		}
-			}
+	}
 
     #endregion
 
 
-	#region Cooldown
-	public	float	Fire=0.25f;
+
+
+    #region Cooldown
+    public	float	Fire=0.25f;
 
 	float	mFireTimer=0f;
 
@@ -172,6 +177,9 @@ if (CoolDown () && Input.GetKey (KeyCode.Space)) {
 		mFireTimer += Time.deltaTime;
 		return	false;
 	}
-	#endregion
+    #endregion
 
+    void OnTriggerEnter2D(Collider2D vOther) {
+//        DB.MsgFormat("{0} collided with {1}", gameObject.name, vOther.gameObject.name);
+    }
 }

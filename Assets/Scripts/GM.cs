@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using RL_Helpers;
+using UnityEngine.Networking;
 
 public class GM : Singleton {
 
@@ -37,6 +38,7 @@ public class GM : Singleton {
 			return	sGM.mWorldSize;
 		}
 	}
-	#endregion
+    #endregion
+
 
 }

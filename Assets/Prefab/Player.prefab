@@ -20,10 +20,10 @@ GameObject:
   m_Component:
   - 4: {fileID: 4000012323175188}
   - 212: {fileID: 212000010747084434}
-  - 50: {fileID: 50000012875755830}
   - 61: {fileID: 61000010032770522}
   - 114: {fileID: 114000010964388970}
   - 114: {fileID: 114000012941205316}
+  - 50: {fileID: 50000010038467902}
   - 114: {fileID: 114000010023376130}
   - 114: {fileID: 114000013976195536}
   m_Layer: 0
@@ -111,7 +111,7 @@ Transform:
   - {fileID: 224000010818442266}
   m_Father: {fileID: 0}
   m_RootOrder: 0
---- !u!50 &50000012875755830
+--- !u!50 &50000010038467902
 Rigidbody2D:
   serializedVersion: 2
   m_ObjectHideFlags: 1
@@ -123,7 +123,7 @@ Rigidbody2D:
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 0
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
@@ -154,7 +154,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RotationSpeed: 180
-  Speed: 20
+  Speed: 1
+  MaxSpeed: 5
   BulletSpeed: 1
   BulletTimeToLive: 1
   BulletSpawn: {fileID: 0}
@@ -274,7 +275,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_TransformSyncMode: 2
-  m_SendInterval: 0.1
+  m_SendInterval: 0.11111111
   m_SyncRotationAxis: 3
   m_RotationSyncCompression: 0
   m_SyncSpin: 0
