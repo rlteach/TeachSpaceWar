@@ -11,7 +11,6 @@ namespace RL_Helpers {      //Default namespace for helper code
             if (sGM == null) {
                 sGM = (T)this;
                 DontDestroyOnLoad(gameObject);
-				DB.MsgFormat("First time creation of:{0}", this.GetType ().Name);
                 return true;        //Signal back if this is the first time this has been created
             } else if (sGM != this) {
                 Destroy(gameObject);
