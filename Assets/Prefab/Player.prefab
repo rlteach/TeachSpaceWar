@@ -41,6 +41,7 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 4000011874092146}
+  - 212: {fileID: 212000011989241804}
   m_Layer: 0
   m_Name: BulletSpawn
   m_TagString: Untagged
@@ -91,7 +92,7 @@ Transform:
   m_GameObject: {fileID: 1000012203635142}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.285, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 1}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_Children: []
   m_Father: {fileID: 4000012323175188}
@@ -120,10 +121,10 @@ Rigidbody2D:
   m_GameObject: {fileID: 1000011352846284}
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0
+  m_LinearDrag: 0.1
   m_AngularDrag: 0.05
   m_GravityScale: 0
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
@@ -154,13 +155,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RotationSpeed: 180
-  Speed: 1
+  Speed: 0.2
   MaxSpeed: 5
   BulletSpeed: 1
   BulletTimeToLive: 1
-  BulletSpawn: {fileID: 0}
   NameText: {fileID: 114000012090471730}
-  Fire: 0.25
+  BulletSpawnPosition: {fileID: 4000011874092146}
+  BulletPrefab: {fileID: 1000012344669450, guid: 1752a3ff6a6704f72b33928ae880d5f6,
+    type: 2}
 --- !u!114 &114000010159047054
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -325,6 +327,39 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300002, guid: d12ae320f4c824a489063419a8b914c2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+--- !u!212 &212000011989241804
+SpriteRenderer:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000012203635142}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_Materials:
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_SubsetIndices: 
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_SelectedWireframeHidden: 1
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingOrder: 0
+  m_Sprite: {fileID: 21300000, guid: 12a27b0681d1dd54891eb013fa9e1a3b, type: 3}
+  m_Color: {r: 0.07586217, g: 1, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
 --- !u!222 &222000010625508220
