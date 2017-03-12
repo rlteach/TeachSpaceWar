@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.Networking;
 using RL_Helpers;
+using UnityEngine.Assertions;
 
 [RequireComponent(typeof(Rigidbody2D))]
 	
@@ -22,8 +23,8 @@ public abstract	class Entity : NetworkBehaviour {
 		}
 	}
 
-	Rigidbody2D mRB;				//As we have collisions, everthign needs a RigidBody2D
-	public	Rigidbody2D RB {
+	Rigidbody2D mRB;				//As we have collisions, everthing needs a RigidBody2D, well done Unity!
+	public	Rigidbody2D RB {		//Read only access to Rigidbody2D
 		get {
 			return	mRB;
 		}
@@ -31,14 +32,13 @@ public abstract	class Entity : NetworkBehaviour {
 
 	void Update () {
 		if (isLocalPlayer) {
-			ProcessLocalPlayer ();
+			ProcessLocalPlayer ();		//Only process GameObject if its local
 		}
 	}
 
-	public	virtual void	ProcessLocalPlayer() {
-	}
+	public	virtual void	ProcessLocalPlayer() {} //This will do nothing, generally overridden
 
-	void	Start() {
+	void	Start() {		//Get references to common components
 		mRB = GetComponent<Rigidbody2D> ();
 		mNetID = GetComponent<NetworkIdentity> ().netId;
 	}
@@ -48,35 +48,30 @@ public abstract	class Entity : NetworkBehaviour {
 		if (isServer) {		//Only process collisions on server
 			if (EType != EntityType.Bullet) {	//Process hits from players perspective, ie ignore bullet-player collision
 				Entity tOtherEntity = vOther.GetComponent<Entity> ();
-				if (tOtherEntity != null) {
-					CmdHitBy (netId, tOtherEntity.NetID);
-				} else {
-					DB.ErrorFormat ("Collision with non Entity {0) ignored", vOther.name);
-				}
+				Assert.IsNotNull (tOtherEntity);		//If this fails we have a non Enity object in scene
+				CmdHitBy (netId, tOtherEntity.NetID);
 			}
 		}
 	}
 
 	[Command]
-	private void	CmdHitBy(NetworkInstanceId vMe,NetworkInstanceId vOther) {
+	private void	CmdHitBy(NetworkInstanceId vMe,NetworkInstanceId vOther) {	//This is processed on the server, will get the server side GameObjects, and their Entites
 		Entity tMeEntity = FindServerEntity(vMe);
+		Assert.IsNotNull (tMeEntity);
 		Entity tOtherEntity = FindServerEntity (vOther);
-		if(tMeEntity!=null && tOtherEntity!=null) {
-			tMeEntity.ProcessHit (tOtherEntity);
-		} else {
-			DB.ErrorFormat ("CmdHitBy({0},{1}) Entities not found on server",vMe,vOther);
-		}
+		Assert.IsNotNull (tOtherEntity);
+		tMeEntity.ProcessHit (tOtherEntity);
 	}
 
 	public	virtual	void	ProcessHit(Entity vOther) {
-		DB.MsgFormat ("Default {0} hit by {1}", EType, vOther.EType);
+		DB.MsgFormat ("Default {0} hit by {1}", EType, vOther.EType);		//Default, this is normally overridden
 	}
 
-	public	static	Entity FindServerEntity(NetworkInstanceId vNetID) {
+	public	static	Entity FindServerEntity(NetworkInstanceId vNetID) {		//Use unique NetID to find GameObject and Entity
 		GameObject tMe = NetworkServer.FindLocalObject (vNetID);		//Get Server version of Object
 		if (tMe != null) {
 			return	tMe.GetComponent<Entity> ();
 		}
-		return	null;
+		return	null;		//Not found
 	}
 }

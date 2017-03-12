@@ -14,7 +14,7 @@ namespace Multiplayer {
         #region GameManager
         static  MultiplayerGM sMP;
 
-        public void Awake() {
+        public void Awake() {		//Dont think we dont need a singleton here, as NetworkManager makes one
             if(sMP==null) {
                 sMP = this;
 				UserNameInput.text = System.Environment.UserName;
@@ -34,13 +34,13 @@ namespace Multiplayer {
             base.OnServerDisconnect(vConn);
             DB.MsgFormat("Disconnected from {0}", vConn);
         }
-        public override void OnServerAddPlayer(NetworkConnection vConn, short vPlayerControllerId) {        //Documentation WRONG, use this not what they say to get called when clients added
-            DB.MsgFormat("OnServerAddPlayer({0},{1})", vConn, vPlayerControllerId);
+        public override void OnServerAddPlayer(NetworkConnection vConn, short vPlayerControllerId) {        //Documentation WRONG, use this form not whats in the docs
             base.OnServerAddPlayer(vConn, vPlayerControllerId);         //Call base method to create player from prefab
+			DB.MsgFormat("OnServerAddPlayer({0},{1})", vConn, vPlayerControllerId);
         }
 
         public override void OnServerRemovePlayer(NetworkConnection vConn, PlayerController vPlayer) {      //Documentation WRONG, this is never called
-            base.OnServerRemovePlayer(vConn, vPlayer);
+			base.OnServerRemovePlayer(vConn, vPlayer);
             DB.MsgFormat("OnServerRemovePlayer({0},{1})", vConn, vPlayer);
         }
         #endregion

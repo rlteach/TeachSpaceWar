@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine.Networking;
 using RL_Helpers;
 using UnityEngine.UI;
+using UnityEngine.Assertions;
 
 namespace Multiplayer {
 
@@ -13,14 +14,14 @@ namespace Multiplayer {
 
 		public	override	EntityType EType {
 			get {
-				return	EntityType.Player;
+				return	EntityType.Player;		//Our type
 			}
 		}
 
-		[SyncVar (hook="OnNameChange")]
+		[SyncVar (hook="OnNameChange")]		//Hook name change so we can update UI
 		string	mPlayerName="None";
 
-		[Command]		//This will run on server to update SyncVar, and hence all the names on the players
+		[Command]		//This will run on server to update SyncVar, and hence show the new name on all of the clients
 		public void	CmdSetUserName(string vName) {
 			mPlayerName = vName;		
 		}
@@ -28,6 +29,12 @@ namespace Multiplayer {
 		void	OnNameChange(string vName) {
 			mPlayerName = vName;		//Reflect change locally
 			NameText.text=vName;	//Show on screen
+		}
+
+		public	string	PlayerName {		//Read only access to name
+			get {
+				return	mPlayerName;
+			}
 		}
 
 		#endregion
@@ -51,7 +58,13 @@ namespace Multiplayer {
 		[SyncVar (hook="OnScoreChange")]
 		int		mScore;
 
-		void	OnScoreChange(int vScore) {
+		public	int	PlayerScore {		//Read Only access to Score
+			get {
+				return	mScore;
+			}
+		}
+
+		void	OnScoreChange(int vScore) {		//Will update UI and internal score
 			mScore= vScore;		//Update local score variable
 			if(isLocalPlayer) {
 				MultiplayerGM.Score=mScore;		//Set Score In UI
@@ -67,7 +80,7 @@ namespace Multiplayer {
 
 		void	OnHealthChange(int vHealth) {
 			mHealth = vHealth;		//Update local health variable
-			HealthBar.localScale=new Vector2((float)mHealth/100f,HealthBar.localScale.y);
+			HealthBar.localScale=new Vector2((float)mHealth/100f,HealthBar.localScale.y);		//Quick healthbar, X scaling green covers static red
 		}
 		#endregion
 
@@ -78,14 +91,14 @@ namespace Multiplayer {
         }
 
 		public	override void OnStartServer () {
-			mHealth = 100;
+			mHealth = 100;		//Give Max health
 		}
 
         public	override void OnStartLocalPlayer () {
 		    base.OnStartLocalPlayer ();
 			GetComponent<SpriteRenderer> ().color = Color.green;	//make local player green
 			MultiplayerGM.LocalPlayerShip = this;			//Update static local player
-			MultiplayerGM.Score=mScore;		//Set Score In UI
+			MultiplayerGM.Score=mScore;						//Set Score In UI
 	    }
 
 
@@ -93,22 +106,22 @@ namespace Multiplayer {
 
 
         #region PlayerMove
-		public	override void	ProcessLocalPlayer() {
+		public	override void	ProcessLocalPlayer() {		//Process move & fire
 			MoveLocalPlayer ();
 			LocalPlayerFire();
 		}
 
-	    void	MoveLocalPlayer() {
+	    void	MoveLocalPlayer() {		//Move player
 			if (Input.GetKey (KeyCode.LeftArrow)) {      //Rotate ship, could use torque, but this looks better
                 transform.localRotation *= Quaternion.Euler(0f, 0f, RotationSpeed * Time.deltaTime);
 			}
 			if (Input.GetKey (KeyCode.RightArrow)) {
                 transform.localRotation *= Quaternion.Euler(0f, 0f, -RotationSpeed * Time.deltaTime);
 			}
-			if (Input.GetKey (KeyCode.UpArrow)) {    //Apply force in direction of rotation
+			if (Input.GetKey (KeyCode.UpArrow)) {    //Apply velocity in direction of rotation
                 RB.velocity += (Vector2)(transform.localRotation * Vector2.up* Speed);
             }
-            if (Input.GetKey(KeyCode.DownArrow)) {    //Apply force in direction of rotation
+			if (Input.GetKey(KeyCode.DownArrow)) {    //Apply velocity in direction of rotation
                 RB.velocity -= (Vector2)(transform.localRotation * Vector2.up * Speed);
             }
             if (RB.velocity.magnitude > MaxSpeed) {
@@ -119,17 +132,20 @@ namespace Multiplayer {
         #endregion
 
         #region PlayerFire
-        Cooldown mFireCooldown = new Cooldown(0.25f);       //Cooldown Helper
+        Cooldown mFireCooldown = new Cooldown(0.25f);       //Cooldown Helper, 4 shots per second
         public Transform BulletSpawnPosition;       //Link in IDE
+		public GameObject BulletPrefab;        //Assign in Inspector
 
         void    LocalPlayerFire() {
             if (mFireCooldown.Cool(Time.deltaTime) && Input.GetKey (KeyCode.Space)) {
                 CmdFire();              //Work out where bullet should appear and how fast it should go
 			}
         }
-        public GameObject BulletPrefab;        //Assign in Inspector
+		#endregion
 
-        [Command]   //This runs on server copy of Player, which is needed as only server can spawn objects
+		#region Fire
+
+        [Command]   //These all run on server copy of Player, which is needed as only server can spawn objects
         public  void    CmdFire() {
             Vector2 tBulletVelocity = transform.rotation*Vector2.up * 10f;
             GameObject tBulletGO = Instantiate(BulletPrefab, BulletSpawnPosition.position, BulletPrefab.transform.rotation) as GameObject;
@@ -142,9 +158,7 @@ namespace Multiplayer {
 
 		#region PlayerHit		//These must only run on server, won't work on client
 		public	override	void	ProcessHit(Entity vOther) {		//As this is only called from a command , it will also process on Server
-			if (!isServer) {
-				DB.Error ("This must only be called on Server to work");		//Catch if this is run from client
-			}
+			Assert.IsTrue(isServer);			//Must run on server, Assert is removed on non debug builds
 			if (vOther.EType == EntityType.Bullet) {		//Destroy bullet
 				Bullet	tBullet=(Bullet)vOther;		//We have a bullet, find who fired it
 				PlayerShip tPlayer=FindServerEntity(tBullet.mPlayerID) as PlayerShip;
