@@ -39,7 +39,6 @@ namespace Multiplayer {
 
 		#endregion
 
-
 	    #region IDE Set values
         [Header("User settings")]           //These will show up in inspector
 
@@ -104,7 +103,6 @@ namespace Multiplayer {
 
         #endregion
 
-
         #region PlayerMove
 		public	override void	ProcessLocalPlayer() {		//Process move & fire
 			MoveLocalPlayer ();
@@ -131,7 +129,7 @@ namespace Multiplayer {
 
         #endregion
 
-        #region PlayerFire
+        #region PlayerFire    //Client side
         Cooldown mFireCooldown = new Cooldown(0.25f);       //Cooldown Helper, 4 shots per second
         public Transform BulletSpawnPosition;       //Link in IDE
 		public GameObject BulletPrefab;        //Assign in Inspector
@@ -143,7 +141,7 @@ namespace Multiplayer {
         }
 		#endregion
 
-		#region Fire
+		#region Fire    //Server side
 
         [Command]   //These all run on server copy of Player, which is needed as only server can spawn objects
         public  void    CmdFire() {
@@ -180,6 +178,5 @@ namespace Multiplayer {
 		}
 
 		#endregion
-
     }
 }
