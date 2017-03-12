@@ -62,7 +62,6 @@ namespace Multiplayer {
 				return	mScore;
 			}
 		}
-
 		void	OnScoreChange(int vScore) {		//Will update UI and internal score
 			mScore= vScore;		//Update local score variable
 			if(isLocalPlayer) {
@@ -73,7 +72,6 @@ namespace Multiplayer {
 
 		#region Health
 		public	RectTransform	HealthBar;	//Link Healthbar in IDE
-
 		[SyncVar (hook="OnHealthChange")]
 		int		mHealth;
 
