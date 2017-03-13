@@ -21,9 +21,9 @@ namespace Multiplayer {
 				tSB.AppendLine("<color=#ff00ffff> Scores </color>");		//Use rich text colour codes
 				foreach(PlayerShip tPS in tPlayers) {
 					if(tPS.isLocalPlayer) {
-						tSB.AppendFormat("<color=#00ff00FF> {0} {1} </color>\n",tPS.PlayerName,tPS.PlayerScore);		//Own Player
+						tSB.AppendFormat("<color=#00ff00FF> {0} {1} {2} </color>\n",tPS.PlayerName,tPS.PlayerScore,(tPS.mStunned)?"Stun":"");		//Own Player
 					} else {
-						tSB.AppendFormat("<color=#e0e0e0FF> {0} {1} </color>\n",tPS.PlayerName,tPS.PlayerScore);		//Other Players
+						tSB.AppendFormat("<color=#e0e0e0FF> {0} {1} {2} </color>\n",tPS.PlayerName,tPS.PlayerScore,(tPS.mStunned)?"Stun":"");		//Other Players
 					}
 				}
 				PlayersText.text=tSB.ToString();

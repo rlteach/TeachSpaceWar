@@ -110,8 +110,10 @@ namespace Multiplayer {
 
         #region PlayerMove
 		public	override void	ProcessLocalPlayer() {		//Process move & fire
-			MoveLocalPlayer ();
-			LocalPlayerFire();
+			if (!mStunned) {
+				MoveLocalPlayer ();
+				LocalPlayerFire ();
+			}
 		}
 
 	    void	MoveLocalPlayer() {		//Move player
@@ -169,6 +171,25 @@ namespace Multiplayer {
 				Destroy (vOther.gameObject);
 				TakeDamage (3);
 			}
+			if (vOther.EType == EntityType.Player) {
+				PlayerShip	tPS = (PlayerShip)vOther;	//Get PlayerShip
+				mStunned=true;
+				tPS.mStunned = true;
+				StartCoroutine (UnStun (this,tPS,3f));		//Unstun after 3 seconds
+			}
+		}
+
+		IEnumerator	UnStun(PlayerShip vPS1, PlayerShip vPS2, float vTime) {
+			yield	return	new	WaitForSeconds (vTime);
+			vPS1.mStunned = false;
+			vPS2.mStunned = false;
+		}
+
+		[SyncVar (hook="OnChangeStunned")]
+		public	bool	mStunned;
+
+		void	OnChangeStunned(bool vStunned) {
+			mStunned = vStunned;
 		}
 
 		public	void	TakeDamage(int vAmount) {
