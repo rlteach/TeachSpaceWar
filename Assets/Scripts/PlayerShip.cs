@@ -96,7 +96,14 @@ namespace Multiplayer {
 			GetComponent<SpriteRenderer> ().color = Color.green;	//make local player green
 			MultiplayerGM.LocalPlayerShip = this;			//Update static local player
 			MultiplayerGM.Score=mScore;						//Set Score In UI
+			transform.position=RandomPosition();
 	    }
+
+		Vector2	RandomPosition() {
+			float	tHeight = Camera.main.orthographicSize;
+			float	tWidth = tHeight*Camera.main.aspect;
+			return	new Vector2 (Random.Range (-tWidth, tWidth), Random.Range (-tHeight, tHeight));
+		}
 
 
         #endregion
