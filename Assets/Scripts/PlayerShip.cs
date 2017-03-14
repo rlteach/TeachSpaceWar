@@ -28,7 +28,7 @@ namespace Multiplayer {
 
 		void	OnNameChange(string vName) {
 			mPlayerName = vName;		//Reflect change locally
-			NameText.text=vName;	//Show on screen
+			NameText.text=vName;	//Show on screen, in player screen canvas
 		}
 
 		public	string	PlayerName {		//Read only access to name
@@ -65,7 +65,7 @@ namespace Multiplayer {
 		void	OnScoreChange(int vScore) {		//Will update UI and internal score
 			mScore= vScore;		//Update local score variable
 			if(isLocalPlayer) {
-				MultiplayerGM.Score=mScore;		//Set Score In UI
+				MultiplayerGM.Score=mScore;		//Set Score In UI, but only for local player
 			}
 		}
 		#endregion
@@ -76,7 +76,7 @@ namespace Multiplayer {
 		int		mHealth;
 
 		void	OnHealthChange(int vHealth) {
-			mHealth = vHealth;		//Update local health variable
+			mHealth = vHealth;		//Update local health variable, when told to do so by server
 			HealthBar.localScale=new Vector2((float)mHealth/100f,HealthBar.localScale.y);		//Quick healthbar, X scaling green covers static red
 		}
 		#endregion
@@ -87,11 +87,11 @@ namespace Multiplayer {
 		    OnNameChange (mPlayerName);		//Make sure name is shown first time its created
         }
 
-		public	override void OnStartServer () {
+		public	override void OnStartServer () { //This runs on the server only
 			mHealth = 100;		//Give Max health
 		}
 
-        public	override void OnStartLocalPlayer () {
+        public	override void OnStartLocalPlayer () {		//Runs on local player in client
 		    base.OnStartLocalPlayer ();
 			GetComponent<SpriteRenderer> ().color = Color.green;	//make local player green
 			MultiplayerGM.LocalPlayerShip = this;			//Update static local player
@@ -99,7 +99,7 @@ namespace Multiplayer {
 			transform.position=RandomPosition();
 	    }
 
-		Vector2	RandomPosition() {
+		Vector2	RandomPosition() {		//Careful, if players have differnet aspect ratio screens this will give differing results on them as apsect will not be the same
 			float	tHeight = Camera.main.orthographicSize;
 			float	tWidth = tHeight*Camera.main.aspect;
 			return	new Vector2 (Random.Range (-tWidth, tWidth), Random.Range (-tHeight, tHeight));
@@ -110,7 +110,7 @@ namespace Multiplayer {
 
         #region PlayerMove
 		public	override void	ProcessLocalPlayer() {		//Process move & fire
-			if (!mStunned) {
+			if (!mStunned) {		//Disable player move & fire on stunned
 				MoveLocalPlayer ();
 				LocalPlayerFire ();
 			}
@@ -163,43 +163,55 @@ namespace Multiplayer {
 
 		#region PlayerHit		//These must only run on server, won't work on client
 		public	override	void	ProcessHit(Entity vOther) {		//As this is only called from a command , it will also process on Server
-			Assert.IsTrue(isServer);			//Must run on server, Assert is removed on non debug builds
+			Assert.IsTrue(isServer);			//Must run on server, Assert is a debug feature which is removed on non debug builds See:https://docs.unity3d.com/ScriptReference/Assertions.Assert.html
 			if (vOther.EType == EntityType.Bullet) {		//Destroy bullet
 				Bullet	tBullet=(Bullet)vOther;		//We have a bullet, find who fired it
 				PlayerShip tPlayer=FindServerEntity(tBullet.mPlayerID) as PlayerShip;
 				tPlayer.GiveScore (10);		//Give score to player who shot us
 				Destroy (vOther.gameObject);
-				TakeDamage (3);
+				TakeDamage (30);
 			}
-			if (vOther.EType == EntityType.Player) {
-				PlayerShip	tPS = (PlayerShip)vOther;	//Get PlayerShip
-				mStunned=true;
-				tPS.mStunned = true;
-				StartCoroutine (UnStun (this,tPS,3f));		//Unstun after 3 seconds
+			if (vOther.EType == EntityType.Player) {		//If we hit other player, cause stun
+				StartCoroutine (StunPlayers (this,(PlayerShip)vOther,3f));		//Stub then Unstun after 3 seconds
 			}
 		}
 
-		IEnumerator	UnStun(PlayerShip vPS1, PlayerShip vPS2, float vTime) {
-			yield	return	new	WaitForSeconds (vTime);
-			vPS1.mStunned = false;
-			vPS2.mStunned = false;
+		IEnumerator	StunPlayers(PlayerShip vPS1, PlayerShip vPS2, float vTime) {		//CoRoutine to stun wait then unstun, check https://docs.unity3d.com/Manual/Coroutines.html
+			vPS1.mStunned = true;							//This will run right away
+			vPS2.mStunned = vPS1.mStunned;
+			yield	return	new	WaitForSeconds (vTime);		//This will give suspend this CoRoutine for a period of time
+			vPS1.mStunned = false;							//When time is up code will keep executing here
+			vPS2.mStunned = vPS1.mStunned;
 		}
 
-		[SyncVar (hook="OnChangeStunned")]
+		[SyncVar (hook="OnChangeStunned")]		//SyncVar to tell player they are stunned
 		public	bool	mStunned;
 
 		void	OnChangeStunned(bool vStunned) {
-			mStunned = vStunned;
+			mStunned = vStunned;			//Update client variable
 		}
 
-		public	void	TakeDamage(int vAmount) {
+		public	void	TakeDamage(int vAmount) {		//As TakeDamage() is called from ProcessHit, we know is running on the server
 			mHealth -= vAmount;
 			if (mHealth < 0) {		//Make sure Health does not go below zero
 				mHealth = 0;
+				StartCoroutine (BoostHealth (2f));		//Pump health back up, takes 2 seconds
 			}
 		}
 
-		public	void	GiveScore(int vAmount) {
+		IEnumerator	BoostHealth(float vTime) {
+			mStunned = true;		//Stun player
+			yield	return new WaitForSeconds (vTime);		//Wait for a number of seconds before recharge
+			float	vPeriod= 1/(100*vTime);					//Period between updates
+			while (mHealth < 100) {		//Pump Health back up, over a period of time for nice effect, however player stunned till its full
+				mHealth++;
+				yield	return new WaitForSeconds (vPeriod);		//Wait a 1/Time period between updates
+			}
+			mStunned = false;		//UnStun player
+		}
+
+
+		public	void	GiveScore(int vAmount) {		//Boost player score, must be called on Server
 			mScore += vAmount;
 		}
 
