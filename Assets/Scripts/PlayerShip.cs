@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.Networking;
 using RL_Helpers;
 using UnityEngine.UI;
 using UnityEngine.Assertions;
+using UnityEngine.Analytics;
+
 
 namespace Multiplayer {
 
@@ -97,6 +100,7 @@ namespace Multiplayer {
 			MultiplayerGM.LocalPlayerShip = this;			//Update static local player
 			MultiplayerGM.Score=mScore;						//Set Score In UI
 			transform.position=RandomPosition();
+			SendAnalitics ();
 	    }
 
 		Vector2	RandomPosition() {		//Careful, if players have differnet aspect ratio screens this will give differing results on them as apsect will not be the same
@@ -215,6 +219,25 @@ namespace Multiplayer {
 			mScore += vAmount;
 		}
 
+		#endregion
+
+		#region Analytics
+	
+		void	SendAnalitics() {
+			int totalPotions = 5;
+			int totalCoins = 100;
+			string weaponID = "Weapon_102";
+			Analytics.CustomEvent("gameOver", new Dictionary<string, object> {
+				{ "potions", totalPotions },
+				{ "coins", totalCoins },
+				{ "activeWeapon", weaponID }
+			});
+			// Use this call to designate the user gender
+			Analytics.SetUserGender(Gender.Female);
+
+			// Use this call to designate the user birth year
+			Analytics.SetUserBirthYear(1964);		
+		}
 		#endregion
     }
 }
