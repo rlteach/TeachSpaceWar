@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿//#define	SERVER
+
+
+
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.Networking;
@@ -7,9 +11,31 @@ using UnityEngine.Networking.NetworkSystem;
 
 //Helper classes to deal with Server & client events
 
+
 namespace Multiplayer {
 
+
+
     public class MultiplayerGM : NetworkManager {     //Add more functions to network manager
+
+		bool	isAtStartup=true;
+		public void SetupSystem()
+		{
+			#if SERVER
+				networkPort=7777;
+				networkAddress="localhost";
+				StartServer();
+			#else
+				GetComponent<NetworkManagerHUD>().showGUI=true;
+			#endif
+			isAtStartup = false;
+		}
+
+		void	Update() {
+			if(isAtStartup) {
+				SetupSystem();
+			}
+		}
 
         #region GameManager
         static  MultiplayerGM sMP;
