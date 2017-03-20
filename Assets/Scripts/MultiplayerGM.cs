@@ -1,6 +1,4 @@
-﻿//#define	SERVER
-
-
+﻿
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,16 +16,22 @@ namespace Multiplayer {
 
     public class MultiplayerGM : NetworkManager {     //Add more functions to network manager
 
+		bool	isHeadless {
+			get {
+				return	SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
+			}
+		}
+
 		bool	isAtStartup=true;
 		public void SetupSystem()
 		{
-			#if SERVER
-				networkPort=7777;
-				networkAddress="localhost";
-				StartServer();
-			#else
+			if (isHeadless) {
+				networkPort = 7777;
+				networkAddress = "localhost";
+				StartServer ();
+			} else {
 				GetComponent<NetworkManagerHUD>().showGUI=true;
-			#endif
+			}
 			isAtStartup = false;
 		}
 

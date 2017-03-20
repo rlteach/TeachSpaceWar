@@ -49,19 +49,22 @@ public abstract	class Entity : NetworkBehaviour {
 			if (EType != EntityType.Bullet) {	//Process hits from players perspective, ie ignore bullet-player collision
 				Entity tOtherEntity = vOther.GetComponent<Entity> ();
 				Assert.IsNotNull (tOtherEntity);		//If this fails we have a non Enity object in scene
-				CmdHitBy (netId, tOtherEntity.NetID);
+				HitBy (netId, tOtherEntity.NetID);
 			}
 		}
 	}
 
-	[Command]
-	private void	CmdHitBy(NetworkInstanceId vMe,NetworkInstanceId vOther) {	//This is processed on the server, will get the server side GameObjects, and their Entites
+	//Oversight here, only shows on server only config (host works fine)
+	//Used to call this with a command BUT in server only mode this wont work, as you can only call command from a client
+	//OnTriggerEnter2D() ensure its only run on server, which for some reason works on a host
+	private void	HitBy(NetworkInstanceId vMe,NetworkInstanceId vOther) {	//This is processed on the server, will get the server side GameObjects, and their Entites
 		Entity tMeEntity = FindServerEntity(vMe);
 		Assert.IsNotNull (tMeEntity);
 		Entity tOtherEntity = FindServerEntity (vOther);
 		Assert.IsNotNull (tOtherEntity);
 		tMeEntity.ProcessHit (tOtherEntity);
 	}
+
 
 	public	virtual	void	ProcessHit(Entity vOther) {
 		DB.MsgFormat ("Default {0} hit by {1}", EType, vOther.EType);		//Default, this is normally overridden
